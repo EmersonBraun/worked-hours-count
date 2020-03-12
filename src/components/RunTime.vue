@@ -1,7 +1,6 @@
 <template>
   <div class="row q-col-gutter-xs">
     <div class="time run time-center">{{time.hr | twoDigit}}:{{time.min | twoDigit}}:{{time.sec | twoDigit}}</div>
-    <!-- <q-input filled outlined v-model="registry.task" label="Task Name" dark class="text-h4 col-12"/> -->
     <SelectTask v-model="registry.task"/>
     <q-input filled outlined v-model="registry.start_at" label="Start At" disable dark class="text-h4 col-6"/>
     <q-input filled outlined v-model="registry.stop_at" label="Stop At" disable dark class="text-h4 col-6"/>
@@ -11,6 +10,7 @@
 </template>
 
 <script>
+import { date } from 'quasar'
 import SelectTask from './SelectTask'
 export default {
   name: 'RunTime',
@@ -33,38 +33,34 @@ export default {
     isRunning() {
       return this.$store.state.clock.running
     },
-
   },
   methods: {
+    create() {
+      this.$db.runs.add(this.registry)
+      .then((response) => {
+        this.msg('Registred')
+      })
+      .catch((error) => {
+        console.error(error.message)
+        this.msg('Not Registred', false)
+      });
+    },
     start() {
       if(this.registry.task) {
         this.reset()
         this.toogleRun()
+        this.registry.date = this.$store.state.clock.currTime.split(' ')[0]
         this.registry.start_at = this.$store.state.clock.currTime
         this.runClock()
       } 
-      // if (this.timeBegan === null) {
-      //   this.reset();
-      //   this.timeBegan = new Date();
-      // }
-      // if (this.timeStopped !== null) {
-      //   this.stoppedDuration += (new Date() - this.timeStopped)
-      // }
-      // this.started = setInterval(this.clockRunning(), 10)	
-      // this.running = true;
     },
     stop() {
       this.registry.stop_at = this.$store.state.clock.currTime
+      this.registry.seconds = date.getDateDiff(this.registry.stop_at, this.registry.start_at, 'seconds')
       this.toogleRun()
-      // this.timeStopped = new Date();
-      // clearInterval(this.started);
+      this.create()
     },
     reset() {
-      // this.running = false;
-      // clearInterval(started);
-      // this.stoppedDuration = 0;
-      // this.timeBegan = null;
-      // this.timeStopped = null;
       this.time =  {hr: 0,min: 0,sec: 0}
       this.registry.start_at = null
       this.registry.stop_at = null
@@ -93,6 +89,13 @@ export default {
     addHours () {
       this.time.min = 0
       this.time.hr++
+    },
+    msg(msg, happen=true) {
+      const color = happen ? 'primary' : 'error'
+      this.$q.notify({
+        message: msg,
+        color: color
+      })
     },
     pommodoro () {
       // this.$q.notify({

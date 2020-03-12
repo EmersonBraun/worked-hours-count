@@ -11,6 +11,7 @@
       option-label="task"
       emit-value
       map-options
+      @input="$emit('input', task)"
     />
 </template>
 
@@ -29,9 +30,9 @@ export default {
   methods: {
     async list() {
       try {
-        const res = await this.$db.tasks.toArray();
-        console.error(res)
-        this.tasks = res
+        const res = await this.$db.tasks.toArray()
+        const filtered = res.filter(v => v.done == false)
+        this.tasks = filtered
       } catch (error) {
         console.error(error.message)
       }

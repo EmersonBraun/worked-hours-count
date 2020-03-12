@@ -3,7 +3,6 @@
     <div class="q-pa-md">
         <RunTime />
     </div>
-    <!-- {{db}} -->
   </q-page>
 </template>
 
@@ -12,12 +11,6 @@ import RunTime from '../components/RunTime'
 export default {
   name: 'PageIndex',
   components: {RunTime},
-  data() {
-    return {
-      text: 'asd',
-      db: null
-    }
-  }
 }
 </script>
 <style lang="stylus">
