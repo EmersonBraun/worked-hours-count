@@ -17,6 +17,12 @@
           @click="exportTable"
         />
       </template>
+      <template v-slot:body-cell-actions="props">
+        <q-td :props="props">
+          <!-- <q-btn dense round flat color="grey" @click="editRow(props.row)" icon="edit"></q-btn> -->
+          <q-btn dense round flat color="grey" @click="deleteRow(props.row)" icon="delete"></q-btn>
+        </q-td>
+      </template>
     </q-table>
   </q-page>
 </template>
@@ -51,7 +57,7 @@ export default {
         { name: 'start_at', label: 'Start at', field: 'start_at', sortable: true },
         { name: 'stop_at', label: 'Stop at', field: 'stop_at' , sortable: true},
         { name: 'seconds', label: 'Run Time', field: 'seconds', format: val => `${this.formatHour(val)}`, },
-        // { name: 'actions', label: 'Actions', field: 'actions' }
+        { name: 'actions', label: 'Actions', field: 'actions' }
       ],
     }
   },
@@ -70,6 +76,27 @@ export default {
       } catch (error) {
         console.error(error.message)
       }
+    },
+    editRow(registry) {
+
+    },
+    deleteRow(registry) {
+      this.$db.runs.delete(registry.id)
+      .then((response) => {
+        this.msg('Deleted')
+        this.list()
+      })
+      .catch((error) => {
+        console.error(error.message)
+        this.msg('Not Deleted', false)
+      });
+    },
+    msg(msg, happen=true) {
+      const color = happen ? 'primary' : 'error'
+      this.$q.notify({
+        message: msg,
+        color: color
+      })
     },
     exportTable () {
       // naive encoding to csv format

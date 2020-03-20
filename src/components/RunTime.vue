@@ -1,6 +1,6 @@
 <template>
   <div class="row q-col-gutter-xs">
-    <div class="time run time-center">{{time.hr | twoDigit}}:{{time.min | twoDigit}}:{{time.sec | twoDigit}}</div>
+    <div class="time run time-center">{{time}}</div>
     <SelectTask v-model="registry.task"/>
     <q-input filled outlined v-model="registry.start_at" label="Start At" disable dark class="text-h4 col-6"/>
     <q-input filled outlined v-model="registry.stop_at" label="Stop At" disable dark class="text-h4 col-6"/>
@@ -17,22 +17,19 @@ export default {
   components: {SelectTask},
   data () {
     return {
-      time: {hr: 0,min: 0,sec: 0},
+      time: '00:00:00',
       registry: {
         task: null
       },
-    }
-  },
-  filters: {
-    twoDigit (value) {
-      if(value < 10) return `0${value}`
-      return value
     }
   },
   computed: {
     isRunning() {
       return this.$store.state.clock.running
     },
+    completeDate() {
+      return `${this.registry.date} ${this.$store.state.clock.currTime}`
+    }
   },
   methods: {
     create() {
@@ -49,13 +46,13 @@ export default {
       if(this.registry.task) {
         this.reset()
         this.toogleRun()
-        this.registry.date = this.$store.state.clock.currTime.split(' ')[0]
-        this.registry.start_at = this.$store.state.clock.currTime
+        this.registry.date = this.$store.state.clock.currDate
+        this.registry.start_at = this.completeDate
         this.runClock()
       } 
     },
     stop() {
-      this.registry.stop_at = this.$store.state.clock.currTime
+      this.registry.stop_at = this.completeDate
       this.registry.seconds = date.getDateDiff(this.registry.stop_at, this.registry.start_at, 'seconds')
       this.toogleRun()
       this.create()
@@ -68,7 +65,7 @@ export default {
     runClock(){
         setTimeout(()=>{ 
             if(this.isRunning) {
-                this.addSecconds() 
+                this.updateClock() 
                 this.runClock()
             }
         }, 1000);  
@@ -76,19 +73,10 @@ export default {
     toogleRun() {
       this.$store.commit('clock/toogleRunning')
     },
-    addSecconds () {
-      if (this.time.sec<59) this.time.sec++
-      else this.addMinutes()
-    },
-    addMinutes () {
-      this.time.sec = 0
-      if(this.time.min>24) this.pommodoro()
-      if (this.time.min<59) this.time.min++
-      else this.addHours()
-    },
-    addHours () {
-      this.time.min = 0
-      this.time.hr++
+    updateClock () {
+      const date1 = this.completeDate
+      const newTime = date.getDateDiff(date1, this.registry.start_at, 'seconds')
+      this.time = new Date(newTime * 1000).toISOString().substr(11, 8)
     },
     msg(msg, happen=true) {
       const color = happen ? 'primary' : 'error'
