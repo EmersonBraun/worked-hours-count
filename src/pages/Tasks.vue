@@ -85,15 +85,17 @@ export default {
         });
     },
     remove(id){
-      this.$db.tasks.delete(id)
-        .then((response) => {
-          this.clean()
-          this.msg('Deleted')
-        })
-        .catch((error) => {
-          console.error(error.message)
-          this.msg('Not Deleted', false)
-        });
+      if(confirm('are you sure?')) {
+        this.$db.tasks.delete(id)
+          .then((response) => {
+            this.clean()
+            this.msg('Deleted')
+          })
+          .catch((error) => {
+            console.error(error.message)
+            this.msg('Not Deleted', false)
+          });
+      }
     },
     msg(msg, happen=true) {
       const color = happen ? 'primary' : 'error'

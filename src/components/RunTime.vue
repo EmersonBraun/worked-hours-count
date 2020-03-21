@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import dateUtils from '../utils/dateUtils'
 import { date } from 'quasar'
 import SelectTask from './SelectTask'
 export default {
@@ -47,13 +48,15 @@ export default {
         this.reset()
         this.toogleRun()
         this.registry.date = this.$store.state.clock.currDate
-        this.registry.start_at = this.completeDate
+        this.registry.start_at = this.$store.state.clock.currTime
         this.runClock()
       } 
     },
     stop() {
-      this.registry.stop_at = this.completeDate
-      this.registry.seconds = date.getDateDiff(this.registry.stop_at, this.registry.start_at, 'seconds')
+      this.registry.stop_at = this.$store.state.clock.currTime
+      const init = `${this.registry.date} ${this.registry.start_at}`
+      const end = `${this.registry.date} ${this.registry.stop_at}`
+      this.registry.seconds = date.getDateDiff(init, end, 'seconds')
       this.toogleRun()
       this.create()
     },
@@ -76,7 +79,7 @@ export default {
     updateClock () {
       const date1 = this.completeDate
       const newTime = date.getDateDiff(date1, this.registry.start_at, 'seconds')
-      this.time = new Date(newTime * 1000).toISOString().substr(11, 8)
+      this.time = dateUtils.convertSeconds(newTime)
     },
     msg(msg, happen=true) {
       const color = happen ? 'primary' : 'error'

@@ -1,5 +1,5 @@
 <template>
-  <span class="text-white text-h4 time">{{currDate}}{{currTime}}</span>
+  <span class="text-white text-h4 time">{{currDate}} {{currTime}}</span>
 </template>
 
 <script>

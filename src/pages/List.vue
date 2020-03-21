@@ -1,5 +1,28 @@
 <template>
   <q-page padding>
+    <div class="q-pa-md">
+      <div class="q-gutter-md row items-start">
+        <q-input filled v-model="init_date" mask="####-##-##" :rules="['date']" class="col-5" dark> 
+          <template v-slot:append>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                <q-date v-model="init_date" @input="() => $refs.qDateProxy.hide()" />
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+        <q-input filled v-model="end_date" mask="####-##-##" :rules="['date']" class="col-5" dark>
+          <template v-slot:append>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                <q-date v-model="end_date" @input="() => $refs.qDateProxy.hide()" />
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
+        <q-btn color="primary" label="clear" @click="clear"/>
+      </div>
+    </div>
     <q-table
       title="Runs"
       :data="runs"
@@ -24,10 +47,13 @@
         </q-td>
       </template>
     </q-table>
+    Total: {{totalSec}}
   </q-page>
 </template>
 
 <script>
+import dateUtils from '../utils/dateUtils'
+import { date } from 'quasar'
 import { exportFile } from 'quasar'
 
 function wrapCsvValue (val, formatFn) {
@@ -40,8 +66,10 @@ function wrapCsvValue (val, formatFn) {
    * Excel accepts \n and \r in strings, but some other CSV parsers do not
    * Uncomment the next two lines to escape new lines
    */
-  // .split('\n').join('\\n')
-  // .split('\r').join('\\r')
+  
+  .split('\n').join('\\n')
+  
+  .split('\r').join('\\r')
 
   return `"${formatted}"`
 }
@@ -50,6 +78,8 @@ export default {
   data() {
     return {
       filter: '',
+      init_date: null,
+      end_date: null,
       runs: [],
       columns: [
         {name: 'task',label: 'Task',align: 'left',field: row => row.task,sortable: true},
@@ -59,37 +89,61 @@ export default {
         { name: 'seconds', label: 'Run Time', field: 'seconds', format: val => `${this.formatHour(val)}`, },
         { name: 'actions', label: 'Actions', field: 'actions' }
       ],
+      totalSec: 0
     }
   },
   created() {
     this.list()
   },
+  watch: {
+    end_date() {
+      if(this.end_date && this.init_date) this.list()
+    }
+  },
   methods: {
     formatHour(val) {
-      if(!val) return 0
-      return val
+      return dateUtils.convertSeconds(val);
     },
     async list() {
       try {
-        const res = await this.$db.runs.toArray();
-        this.runs = res
+        if(this.init_date && this.end_date) {
+          const res = await this.$db.runs.where('date').between(this.init_date, this.end_date).toArray();
+          this.runs = res
+          this.total()
+        } else {
+          const res = await this.$db.runs.toArray();
+          this.runs = res
+          this.total()
+        }
       } catch (error) {
         console.error(error.message)
       }
+    },
+    async total() {
+      const totalSec = this.runs.reduce((t, el) => t += parseInt(el.seconds),0)
+      const formatHR = dateUtils.convertSeconds(totalSec);
+      this.totalSec = formatHR
+    },
+    clear() {
+      this.init_date = null
+      this.end_date = null
+      this.list()
     },
     editRow(registry) {
 
     },
     deleteRow(registry) {
-      this.$db.runs.delete(registry.id)
-      .then((response) => {
-        this.msg('Deleted')
-        this.list()
-      })
-      .catch((error) => {
-        console.error(error.message)
-        this.msg('Not Deleted', false)
-      });
+      if(confirm('are you sure?')) {
+        this.$db.runs.delete(registry.id)
+        .then((response) => {
+          this.msg('Deleted')
+          this.list()
+        })
+        .catch((error) => {
+          console.error(error.message)
+          this.msg('Not Deleted', false)
+        });
+      }
     },
     msg(msg, happen=true) {
       const color = happen ? 'primary' : 'error'
@@ -99,6 +153,7 @@ export default {
       })
     },
     exportTable () {
+      
       // naive encoding to csv format
       const content = [ this.columns.map(col => wrapCsvValue(col.label)) ].concat(
         this.runs.map(row => this.columns.map(col => wrapCsvValue(
