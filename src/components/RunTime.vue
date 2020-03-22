@@ -12,6 +12,7 @@
 <script>
 import dateUtils from '../utils/dateUtils'
 import { date } from 'quasar'
+import crud from '../db/crud'
 import SelectTask from './SelectTask'
 export default {
   name: 'RunTime',
@@ -29,19 +30,18 @@ export default {
       return this.$store.state.clock.running
     },
     completeDate() {
-      return `${this.registry.date} ${this.$store.state.clock.currTime}`
+      return `${this.$store.state.clock.currDate} ${this.$store.state.clock.currTime}`
+    },
+    currDate() {
+      return this.$store.state.clock.currDate
+    },
+    currTime() {
+      return this.$store.state.clock.currTime
     }
   },
   methods: {
-    create() {
-      this.$db.runs.add(this.registry)
-      .then((response) => {
-        this.msg('Registred')
-      })
-      .catch((error) => {
-        console.error(error.message)
-        this.msg('Not Registred', false)
-      });
+    async create() {
+      const res = await crud.create('runs',this.registry)
     },
     start() {
       if(this.registry.task) {
@@ -77,16 +77,11 @@ export default {
       this.$store.commit('clock/toogleRunning')
     },
     updateClock () {
-      const date1 = this.completeDate
-      const newTime = date.getDateDiff(date1, this.registry.start_at, 'seconds')
+      const endTime = this.completeDate
+      const iniTime = `${this.currDate} ${this.registry.start_at}`
+      const newTime = date.getDateDiff(endTime, iniTime, 'seconds')
+      console.log(newTime)
       this.time = dateUtils.convertSeconds(newTime)
-    },
-    msg(msg, happen=true) {
-      const color = happen ? 'primary' : 'error'
-      this.$q.notify({
-        message: msg,
-        color: color
-      })
     },
     pommodoro () {
       // this.$q.notify({

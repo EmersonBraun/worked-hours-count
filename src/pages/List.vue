@@ -53,6 +53,7 @@
 
 <script>
 import dateUtils from '../utils/dateUtils'
+import crud from '../db/crud'
 import { date } from 'quasar'
 import { exportFile } from 'quasar'
 
@@ -97,7 +98,10 @@ export default {
   },
   watch: {
     end_date() {
-      if(this.end_date && this.init_date) this.list()
+      if(this.end_date && this.init_date) this.filtered()
+    },
+    init_date() {
+      if(this.end_date && this.init_date) this.filtered()
     }
   },
   methods: {
@@ -105,19 +109,14 @@ export default {
       return dateUtils.convertSeconds(val);
     },
     async list() {
-      try {
-        if(this.init_date && this.end_date) {
-          const res = await this.$db.runs.where('date').between(this.init_date, this.end_date).toArray();
-          this.runs = res
-          this.total()
-        } else {
-          const res = await this.$db.runs.toArray();
-          this.runs = res
-          this.total()
-        }
-      } catch (error) {
-        console.error(error.message)
-      }
+      const res = await crud.all('runs')
+      this.runs = res
+      this.total()
+    },
+    async filtered() {
+      const res = await crud.whereBetween('runs','date',this.init_date, this.end_date)
+      this.runs = res
+      this.total()
     },
     async total() {
       const totalSec = this.runs.reduce((t, el) => t += parseInt(el.seconds),0)
@@ -133,24 +132,8 @@ export default {
 
     },
     deleteRow(registry) {
-      if(confirm('are you sure?')) {
-        this.$db.runs.delete(registry.id)
-        .then((response) => {
-          this.msg('Deleted')
-          this.list()
-        })
-        .catch((error) => {
-          console.error(error.message)
-          this.msg('Not Deleted', false)
-        });
-      }
-    },
-    msg(msg, happen=true) {
-      const color = happen ? 'primary' : 'error'
-      this.$q.notify({
-        message: msg,
-        color: color
-      })
+      const res = crud.remove('runs',registry.id)
+      if(res) this.list()
     },
     exportTable () {
       

@@ -7,10 +7,24 @@
 </template>
 
 <script>
+import seeder from '../db/seeder'
 import RunTime from '../components/RunTime'
 export default {
   name: 'PageIndex',
   components: {RunTime},
+  created() {
+    this.upDB()
+  },
+  methods: {
+    async upDB() {
+      try {
+        const res = await seeder.upDB()
+        if(res) console.log('DB is up!')
+      } catch (error) {
+        console.error(error.message)
+      }
+    },
+  }
 }
 </script>
 <style lang="stylus">

@@ -26,6 +26,7 @@
 </template>
 
 <script>
+import crud from '../db/crud'
 import { exportFile } from 'quasar'
 export default {
   name: 'Tasks',
@@ -45,24 +46,13 @@ export default {
       this.registry = {done: false}
     },
     async list() {
-      try {
-        const res = await this.$db.tasks.toArray();
-        this.tasks = res
-      } catch (error) {
-        console.error(error.message)
-      }
+      const res = await crud.all('tasks')
+      this.tasks = res
     },
-    create() {
+    async create() {
       if(this.registry.task){
-        this.$db.tasks.add(this.registry)
-        .then((response) => {
-          this.clean()
-          this.msg('Created')
-        })
-        .catch((error) => {
-          console.error(error.message)
-          this.msg('Not Created', false)
-        });
+        const res = crud.create('tasks',this.registry)
+        if(res) this.list()
       }
     },
     edit(row) {
@@ -74,37 +64,13 @@ export default {
       this.update()
     },
     update(){
-      this.$db.tasks.update(this.registry.id,this.registry)
-        .then((response) => {
-          this.clean()
-          this.msg('Updated')
-        })
-        .catch((error) => {
-          console.error(error.message)
-          this.msg('Not Updated', false)
-        });
+      const res = crud.update('tasks',this.registry)
+      if(res) this.list()
     },
     remove(id){
-      if(confirm('are you sure?')) {
-        this.$db.tasks.delete(id)
-          .then((response) => {
-            this.clean()
-            this.msg('Deleted')
-          })
-          .catch((error) => {
-            console.error(error.message)
-            this.msg('Not Deleted', false)
-          });
-      }
+      const res = crud.remove('tasks',id)
+      if(res) this.list()
     },
-    msg(msg, happen=true) {
-      const color = happen ? 'primary' : 'error'
-      this.$q.notify({
-        message: msg,
-        color: color
-      })
-      if(happen) this.list()
-    }
   }
 }
 </script>
