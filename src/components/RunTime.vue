@@ -56,7 +56,7 @@ export default {
       this.registry.stop_at = this.$store.state.clock.currTime
       const init = `${this.registry.date} ${this.registry.start_at}`
       const end = `${this.registry.date} ${this.registry.stop_at}`
-      this.registry.seconds = date.getDateDiff(init, end, 'seconds')
+      this.registry.seconds = date.getDateDiff( end, init, 'seconds')
       this.toogleRun()
       this.create()
     },
@@ -80,7 +80,6 @@ export default {
       const endTime = this.completeDate
       const iniTime = `${this.currDate} ${this.registry.start_at}`
       const newTime = date.getDateDiff(endTime, iniTime, 'seconds')
-      console.log(newTime)
       this.time = dateUtils.convertSeconds(newTime)
     },
     pommodoro () {
