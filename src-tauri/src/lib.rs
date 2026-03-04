@@ -33,6 +33,17 @@ pub fn run() {
             );",
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "create issue_notes table",
+            sql: "CREATE TABLE issue_notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                jira_issue_key TEXT NOT NULL,
+                description TEXT NOT NULL,
+                recorded_at TEXT NOT NULL
+            );",
+            kind: MigrationKind::Up,
+        },
     ];
 
     let mut builder = tauri::Builder::default();
@@ -43,7 +54,6 @@ pub fn run() {
     }
 
     builder
-        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
@@ -53,15 +63,8 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .setup(|app| {
-            #[cfg(any(target_os = "linux", windows))]
-            {
-                use tauri_plugin_deep_link::DeepLinkExt;
-                app.deep_link().register_all()?;
-            }
-            let _ = app;
-            Ok(())
-        })
+        .plugin(tauri_plugin_notification::init())
+        .setup(|_app| Ok(()))
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
