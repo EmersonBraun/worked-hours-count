@@ -13,20 +13,22 @@
     "http:allow-fetch-cancel",
     "http:allow-fetch-read-body",
     "http:allow-fetch-send",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://*.atlassian.net/**" }
+      ]
+    },
     "dialog:default",
     "dialog:allow-save",
     "dialog:allow-message",
     "dialog:allow-ask",
     "fs:default",
     "fs:allow-write-text-file",
-    "deep-link:default",
-    "deep-link:allow-get-current",
-    "opener:default",
-    {
-      "identifier": "opener:allow-open-url",
-      "allow": [
-        { "url": "https://auth.atlassian.com/*" }
-      ]
-    }
+    "notification:default",
+    "notification:allow-notify",
+    "notification:allow-is-permission-granted",
+    "notification:allow-request-permission",
+    "opener:default"
   ]
 }

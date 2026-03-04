@@ -18,6 +18,13 @@ export interface RunDescriptionRecord {
   recorded_at: string;
 }
 
+export interface IssueNoteRecord {
+  id: number;
+  jira_issue_key: string;
+  description: string;
+  recorded_at: string;
+}
+
 export interface SettingRecord {
   key: string;
   value: string;
@@ -54,7 +61,22 @@ export async function getRuns(startDate?: string, endDate?: string): Promise<Run
 
 export async function deleteRun(id: number): Promise<void> {
   const db = await getDb();
+  // Get the issue key before deleting
+  const rows = await db.select<RunRecord[]>("SELECT jira_issue_key FROM runs WHERE id = $1", [id]);
+  const issueKey = rows.length > 0 ? rows[0].jira_issue_key : null;
+
   await db.execute("DELETE FROM runs WHERE id = $1", [id]);
+
+  // If no other runs reference this issue, delete its notes
+  if (issueKey) {
+    const remaining = await db.select<{ count: number }[]>(
+      "SELECT COUNT(*) as count FROM runs WHERE jira_issue_key = $1",
+      [issueKey],
+    );
+    if (remaining[0].count === 0) {
+      await db.execute("DELETE FROM issue_notes WHERE jira_issue_key = $1", [issueKey]);
+    }
+  }
 }
 
 export async function markRunSynced(id: number): Promise<void> {
@@ -114,4 +136,36 @@ export async function updateRunDescription(id: number, text: string): Promise<vo
 export async function deleteRunDescription(id: number): Promise<void> {
   const db = await getDb();
   await db.execute("DELETE FROM run_descriptions WHERE id = $1", [id]);
+}
+
+export async function addIssueNote(issueKey: string, description: string, recordedAt: string): Promise<number> {
+  const db = await getDb();
+  const result = await db.execute(
+    "INSERT INTO issue_notes (jira_issue_key, description, recorded_at) VALUES ($1, $2, $3)",
+    [issueKey, description, recordedAt],
+  );
+  return result.lastInsertId as number;
+}
+
+export async function getIssueNotes(issueKey: string): Promise<IssueNoteRecord[]> {
+  const db = await getDb();
+  return db.select<IssueNoteRecord[]>(
+    "SELECT * FROM issue_notes WHERE jira_issue_key = $1 ORDER BY id ASC",
+    [issueKey],
+  );
+}
+
+export async function updateIssueNote(id: number, text: string): Promise<void> {
+  const db = await getDb();
+  await db.execute("UPDATE issue_notes SET description = $1 WHERE id = $2", [text, id]);
+}
+
+export async function deleteIssueNote(id: number): Promise<void> {
+  const db = await getDb();
+  await db.execute("DELETE FROM issue_notes WHERE id = $1", [id]);
+}
+
+export async function getAllIssueNotes(): Promise<IssueNoteRecord[]> {
+  const db = await getDb();
+  return db.select<IssueNoteRecord[]>("SELECT * FROM issue_notes ORDER BY id ASC");
 }

@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Worked Hours Count
+
+A desktop application for tracking worked hours with Jira integration. Built with Tauri 2, React, and SQLite.
+
+## Features
+
+- **Timer** — Start/stop timer linked to a Jira issue, with periodic prompts asking what you're working on
+- **Manual Entry** — Add time entries manually with date and time pickers
+- **Run History** — View recorded runs in three modes:
+  - **By Run** — Chronological list of all runs
+  - **By Issue** — Runs grouped by Jira issue with notes timeline
+  - **Calendar** — Monthly calendar view with daily totals
+- **Jira Integration**
+  - Fetch assigned issues
+  - Sync worklogs to Jira
+  - Send structured work log comments (ADF format with table, notes, and totals)
+- **Issue Notes** — Add notes to issues at any time, independently of runs
+- **Scheduled Prompts** — Configure specific times of day to trigger "what are you doing?" prompts
+- **CSV Export** — Export run history with date range in the filename
+- **SQLite Storage** — All data persisted locally
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18+)
+- [Rust](https://www.rust-lang.org/tools/install)
+- Tauri 2 system dependencies — see [Tauri Prerequisites](https://v2.tauri.app/start/prerequisites/)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies
+npm install
+
+# Run in development mode
+npm run tauri dev
+
+# Build for production
+npm run tauri build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/                    # React frontend
+  pages/                # App pages (Home, List, Settings)
+  components/           # UI components (RunTime, CalendarView, TimePicker, etc.)
+  db/                   # SQLite database layer
+  jira/                 # Jira API client and token management
+  utils/                # Date formatting and CSV export utilities
+src-tauri/              # Tauri backend (Rust)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Configuration
 
-## Learn More
+1. Open **Settings** in the app
+2. Enter your Jira domain, email, and API token
+3. Configure prompt interval and/or scheduled prompt times
+4. Click **Save & Connect**
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Tauri 2** — Desktop runtime
+- **React 19** + **React Router 7** — UI framework
+- **Vite 6** — Build tool
+- **Tailwind CSS 4** — Styling
+- **SQLite** (via tauri-plugin-sql) — Local database
+- **TypeScript 5** — Type safety
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the [MIT License](LICENSE).
