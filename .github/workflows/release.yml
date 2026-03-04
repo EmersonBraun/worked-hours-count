@@ -14,8 +14,11 @@ jobs:
       matrix:
         include:
           - platform: ubuntu-22.04
+            args: --bundles deb,appimage
           - platform: macos-latest
+            args: --bundles dmg
           - platform: windows-latest
+            args: --bundles msi,nsis
 
     runs-on: ${{ matrix.platform }}
 
@@ -59,3 +62,4 @@ jobs:
           releaseBody: 'Release v__VERSION__ — Worked Hours Count'
           releaseDraft: false
           prerelease: false
+          args: ${{ matrix.args }}
