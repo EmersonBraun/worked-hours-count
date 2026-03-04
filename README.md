@@ -1,4 +1,4 @@
-# Worked Hours Count
+# Worked Hours Count 
 
 A desktop application for tracking worked hours with Jira integration. Built with Tauri 2, React, and SQLite.
 
